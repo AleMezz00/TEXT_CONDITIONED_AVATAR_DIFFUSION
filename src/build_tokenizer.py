@@ -46,92 +46,93 @@ def pad_sequence(token_ids, max_length, vocabulary):
 
 # DEFINISCO IL PERCORSO DI SPLITS.JSON CHE CONTIENE GLI INDICI ASSEGNATI AI DIVERSI SPLIT DEL DATASET
 # SUBITO DOPO RIPRENDO IL FILE IN MODALITA' LETTURA
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-SPLITS_PATH = PROJECT_ROOT / "data" / "splits.json"
+if __name__ == "__main__":
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
+    SPLITS_PATH = PROJECT_ROOT / "data" / "splits.json"
 
-with open(SPLITS_PATH, "r") as file:
-    splits = json.load(file)
+    with open(SPLITS_PATH, "r") as file:
+        splits = json.load(file)
 
-# PRENDO SOLO LA LISTA ASSOCIATA ALLA CHIAVE TRAIN (COSì CONSIDERO SOLO IL TRAIN SET)
-train_indexes = splits["train"]
+    # PRENDO SOLO LA LISTA ASSOCIATA ALLA CHIAVE TRAIN (COSì CONSIDERO SOLO IL TRAIN SET)
+    train_indexes = splits["train"]
 
-# CARICO IL DATASET (TRAIN IN QUESTO CASO E' LO SPLIT INTERO ORIGINALE DA 10K CHIAMATO DA CartoonSet)
-dataset = load_dataset(
-    DATASET_NAME,
-    DATASET_CONFIG,
-    split="train"
-)
+    # CARICO IL DATASET (TRAIN IN QUESTO CASO E' LO SPLIT INTERO ORIGINALE DA 10K CHIAMATO DA CartoonSet)
+    dataset = load_dataset(
+        DATASET_NAME,
+        DATASET_CONFIG,
+        split="train"
+    )
 
-# VADO A SALVARE IN UN ARRAY TUTTE LE CAPTION CHE GENERIAMO RISPETTO ACIASCUN SAMPLE PRESENTE NEL TRAINING SET
-train_captions = []
+    # VADO A SALVARE IN UN ARRAY TUTTE LE CAPTION CHE GENERIAMO RISPETTO ACIASCUN SAMPLE PRESENTE NEL TRAINING SET
+    train_captions = []
 
-for index in train_indexes:
-    sample = dataset[index]
-    caption = generate_caption(sample)
-    train_captions.append(caption)
+    for index in train_indexes:
+        sample = dataset[index]
+        caption = generate_caption(sample)
+        train_captions.append(caption)
 
-# ORA TRAMITE LA FUNZIONE TOKENIZE RACCOLGO TUTTI I TOKEN PRESENTI NELLE CAPTION DI TRAINING
-training_tokens = set()
+    # ORA TRAMITE LA FUNZIONE TOKENIZE RACCOLGO TUTTI I TOKEN PRESENTI NELLE CAPTION DI TRAINING
+    training_tokens = set()
 
-for caption in train_captions:
-    tokens = tokenize(caption)
+    for caption in train_captions:
+        tokens = tokenize(caption)
 
-    for token in tokens:
-        training_tokens.add(token)
+        for token in tokens:
+            training_tokens.add(token)
 
-# COSTRUISCO CONCRETAMENTE IL VOCABOLARIO CON TUTTI I TOKEN INDIVIDUATI E I TOKEN SPECIALI AGGIUNTI IN PRECEDENZA
-sorted_training_tokens = sorted(training_tokens)
+    # COSTRUISCO CONCRETAMENTE IL VOCABOLARIO CON TUTTI I TOKEN INDIVIDUATI E I TOKEN SPECIALI AGGIUNTI IN PRECEDENZA
+    sorted_training_tokens = sorted(training_tokens)
 
-vocabulary = {}
+    vocabulary = {}
 
-for token in SPECIAL_TOKENS:
-    vocabulary[token] = len(vocabulary)
+    for token in SPECIAL_TOKENS:
+        vocabulary[token] = len(vocabulary)
 
-for token in sorted_training_tokens:
-    vocabulary[token] = len(vocabulary)
+    for token in sorted_training_tokens:
+        vocabulary[token] = len(vocabulary)
 
-# CALCOLO DELLA LUNGHEZZA MASSIMA DELLE CAPTION DI TRAINING
-max_caption_length = 0
+    # CALCOLO DELLA LUNGHEZZA MASSIMA DELLE CAPTION DI TRAINING
+    max_caption_length = 0
 
-for caption in train_captions:
-    tokens = tokenize(caption)
-    caption_length = len(tokens) + 2  # +2 per <BOS> e <EOS>
+    for caption in train_captions:
+        tokens = tokenize(caption)
+        caption_length = len(tokens) + 2  # +2 per <BOS> e <EOS>
 
-    if caption_length > max_caption_length:
-        max_caption_length = caption_length
+        if caption_length > max_caption_length:
+            max_caption_length = caption_length
 
-# ORA DETERMINIAMO IL PERCORSO DEL VOCABOLARIO DEFINITO E LO SALVIAMO
-VOCABULARY_PATH = PROJECT_ROOT / "data" / "vocabulary.json"
+    # ORA DETERMINIAMO IL PERCORSO DEL VOCABOLARIO DEFINITO E LO SALVIAMO
+    VOCABULARY_PATH = PROJECT_ROOT / "data" / "vocabulary.json"
 
-with open(VOCABULARY_PATH, "w") as file:
-    json.dump(vocabulary, file, indent=4)
+    with open(VOCABULARY_PATH, "w") as file:
+        json.dump(vocabulary, file, indent=4)
 
-print(f"Vocabulary saved in: {VOCABULARY_PATH}")
+    print(f"Vocabulary saved in: {VOCABULARY_PATH}")
 
-# DEFINIZIONE DELLA CONFIGURAZIONE DEL TOKENIZER
-tokenizer_config = {
-    "vocabulary_size": len(vocabulary),
-    "max_length": max_caption_length,
-    "pad_token": "<PAD>",
-    "unk_token": "<UNK>",
-    "bos_token": "<BOS>",
-    "eos_token": "<EOS>"
-}
+    # DEFINIZIONE DELLA CONFIGURAZIONE DEL TOKENIZER
+    tokenizer_config = {
+        "vocabulary_size": len(vocabulary),
+        "max_length": max_caption_length,
+        "pad_token": "<PAD>",
+        "unk_token": "<UNK>",
+        "bos_token": "<BOS>",
+        "eos_token": "<EOS>"
+    }
 
-TOKENIZER_CONFIG_PATH = PROJECT_ROOT / "data" / "tokenizer_config.json"
+    TOKENIZER_CONFIG_PATH = PROJECT_ROOT / "data" / "tokenizer_config.json"
 
-# SALVATAGGIO DELLA CONFIGURAZIONE DEL TOKENIZER
-with open(TOKENIZER_CONFIG_PATH, "w") as file:
-    json.dump(tokenizer_config, file, indent=4)
+    # SALVATAGGIO DELLA CONFIGURAZIONE DEL TOKENIZER
+    with open(TOKENIZER_CONFIG_PATH, "w") as file:
+        json.dump(tokenizer_config, file, indent=4)
 
-print(f"Tokenizer configuration saved in: {TOKENIZER_CONFIG_PATH}")
+    print(f"Tokenizer configuration saved in: {TOKENIZER_CONFIG_PATH}")
 
-# CONTROLLO FINALE DEL VOCABOLARIO E DEL TOKENIZER
-print(f"Training captions: {len(train_captions)}")
-print(f"Vocabulary size: {len(vocabulary)}")
-print(f"Maximum sequence length: {max_caption_length}")
+    # CONTROLLO FINALE DEL VOCABOLARIO E DEL TOKENIZER
+    print(f"Training captions: {len(train_captions)}")
+    print(f"Vocabulary size: {len(vocabulary)}")
+    print(f"Maximum sequence length: {max_caption_length}")
 
-print(f"PAD token ID: {vocabulary['<PAD>']}")
-print(f"UNK token ID: {vocabulary['<UNK>']}")
-print(f"BOS token ID: {vocabulary['<BOS>']}")
-print(f"EOS token ID: {vocabulary['<EOS>']}")
+    print(f"PAD token ID: {vocabulary['<PAD>']}")
+    print(f"UNK token ID: {vocabulary['<UNK>']}")
+    print(f"BOS token ID: {vocabulary['<BOS>']}")
+    print(f"EOS token ID: {vocabulary['<EOS>']}")
