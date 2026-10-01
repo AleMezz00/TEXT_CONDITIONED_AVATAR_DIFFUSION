@@ -1,0 +1,36 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# PyCharm
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Environment variables / secrets
+.env
+
+# Training checkpoints and model weights
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Generated outputs
+outputs/
+samples/
+generated_images/
+
+# Experiment logs
+wandb/
+runs/
+
+# Temporary files
+*.tmp
+*.log

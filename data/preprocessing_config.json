@@ -1,0 +1,28 @@
+{
+    "dataset_name": "cgarciae/cartoonset",
+    "dataset_config": "10k+features",
+    "image_size": 32,
+    "image_mode": "RGB",
+    "normalization_mean": [
+        0.5,
+        0.5,
+        0.5
+    ],
+    "normalization_std": [
+        0.5,
+        0.5,
+        0.5
+    ],
+    "caption_type": "deterministic",
+    "caption_attributes": [
+        "eye_color",
+        "hair_color",
+        "hair",
+        "glasses",
+        "facial_hair",
+        "eye_lashes",
+        "eye_eyebrow_distance",
+        "eyebrow_width",
+        "chin_length"
+    ]
+}
