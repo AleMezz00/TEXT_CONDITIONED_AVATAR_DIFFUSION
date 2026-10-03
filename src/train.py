@@ -143,7 +143,7 @@ def train_one_epoch(text_encoder, unet, ddpm, train_loader, loss_function, optim
         total_loss += loss.item() * batch_size
         total_samples += batch_size
 
-    # CALCOLO LA LOSS MEDIA RELATIVA AL BATCH
+    # CALCOLO LA LOSS MEDIA DELL'INTERA EPOCA
     average_train_loss = total_loss / total_samples
 
     return average_train_loss
@@ -259,7 +259,7 @@ def train_model(text_encoder, unet, ddpm, train_loader, validation_loader, loss_
         save_checkpoint(text_encoder, unet, optimizer, completed_epoch=epoch + 1,
                         best_validation_loss=best_validation_loss, epochs_without_improvement=epochs_without_improvement)
 
-        # INTERROMPO LA VALIDATION SE NON SI HA UN MIGLIORAMENTO PER UN DETERMINATO NUMERO DI EPOCHE CONSECUTIVE
+        # INTERROMPO IL TRAINING SE NON SI HA UN MIGLIORAMENTO PER UN DETERMINATO NUMERO DI EPOCHE CONSECUTIVE
         if epochs_without_improvement >= patience:
             print("Early stopping activated.")
             break
