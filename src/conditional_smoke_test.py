@@ -1,4 +1,4 @@
-import train as training
+import conditional_training as training
 
 # CONFIGURAZIONE SCELTA PER LO SMOKE TEST
 SMOKE_TRAIN_SAMPLES = 16
