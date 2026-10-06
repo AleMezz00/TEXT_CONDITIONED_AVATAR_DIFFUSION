@@ -112,9 +112,25 @@ def main():
     # CARICO LE CONFIGURAZIONI E I COMPONENTI DEL MODELLO
     vocabulary, tokenizer_config, text_encoder, unet, ddpm = load_generation_components()
 
-    # RICHIEDO ALL'UTENTE IL PROMPT E IL SEED
-    prompt = input("Insert the avatar prompt: ")
-    seed = int(input("Insert the seed: "))
+    # DEFINISCO LA PARTE FISSA DEL PROMPT
+    prompt_prefix = "a cartoon avatar with "
+
+    # MOSTRO LA PARTE FISSA E L'UTENTE INSERISCE SOLO GLI ATTRIBUTI
+    print("Insert prompt:")
+    print(prompt_prefix, end="")
+
+    user_attributes = input().strip().lower()
+
+    # COSTRUISCO IL PROMPT COMPLETO
+    prompt = prompt_prefix + user_attributes
+
+    # CHIEDO ALL'UTENTE IL SEED
+    seed_input = input("Insert the seed (press Enter to use 42): ").strip()
+
+    if seed_input == "":
+        seed = 42
+    else:
+        seed = int(seed_input)
 
     print(f"Using device: {device}")
     print(f"Prompt: {prompt}")
