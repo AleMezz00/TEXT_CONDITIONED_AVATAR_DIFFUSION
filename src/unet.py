@@ -43,7 +43,7 @@ class ResidualBlock(nn.Module):
         self.norm2 = nn.GroupNorm(num_groups=8, num_channels=out_channels)
 
         # SE IL NUMERO DI CANALI IN INGRESSO E IN USCITA E' DIVERSO, USO UNA CONVOLUZIONE 1x1
-        #DEVO GARANTIRE CHE IL NUMERO DI CANALI DI INPUT SIA UGUALE A QUELLO IN USCITA PER EFFETTUARE SUCCESSIVAMENTE LA SOMMA
+        # DEVO GARANTIRE CHE IL NUMERO DI CANALI DI INPUT SIA UGUALE A QUELLO IN USCITA PER EFFETTUARE SUCCESSIVAMENTE LA SOMMA
         if in_channels != out_channels:
             self.residual_layer = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=1)
         else:
