@@ -15,11 +15,7 @@ OOD_COMBINATIONS = {
 }
 
 # CARICO IL DATASET
-dataset = load_dataset(
-    DATASET_NAME,
-    DATASET_CONFIG,
-    split="train"                                               # l'intero dataset è definito come train e comprende i 10k sample
-)
+dataset = load_dataset(DATASET_NAME, DATASET_CONFIG, split="train")
 
 # CREO LE LISTE CHE CONTERRANNO GLI INDICI DEI SAMPLE
 ood_indexes = []
