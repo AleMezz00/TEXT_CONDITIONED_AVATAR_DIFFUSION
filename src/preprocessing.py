@@ -17,7 +17,7 @@ from attribute_mappings import (
 )
 
 # DATI UTILI PER LA CONFIGURAZIONE DEL PREPROCESSING
-IMAGE_SIZE = 32
+IMAGE_SIZE = 64
 DATASET_NAME = "cgarciae/cartoonset"
 DATASET_CONFIG = "10k+features"
 
@@ -49,7 +49,7 @@ image_transform = transforms.Compose([
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
-# CON QUESTA FUNZIONE EFFETTUO IL RESIZING DEGLI AVATAR ALLA RISOLUZIONE SPECIFICATA (da 500x500 a 32x32) E APPLICO LA NORMALIZZAZIONE
+# CON QUESTA FUNZIONE EFFETTUO IL RESIZING DEGLI AVATAR ALLA RISOLUZIONE SPECIFICATA (da 500x500 a 64x64) E APPLICO LA NORMALIZZAZIONE
 def preprocess_image(image_bytes):
     image = Image.open(BytesIO(image_bytes)).convert("RGB")
     image = image.resize((IMAGE_SIZE, IMAGE_SIZE))

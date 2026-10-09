@@ -1,7 +1,7 @@
 {
     "dataset_name": "cgarciae/cartoonset",
     "dataset_config": "10k+features",
-    "image_size": 32,
+    "image_size": 64,
     "image_mode": "RGB",
     "normalization_mean": [
         0.5,

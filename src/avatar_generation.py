@@ -8,6 +8,7 @@ from build_tokenizer import encode_caption, pad_sequence
 from text_encoder import TextEncoder
 from unet import UNet
 from diffusion import DDPM
+from preprocessing import IMAGE_SIZE
 
 # SELEZIONO IL DEVICE DA UTILIZZARE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -15,7 +16,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # DEFINISCO I PERCORSI PRINCIPALI DEL PROGETTO
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
-CHECKPOINT_PATH = PROJECT_ROOT / "checkpoints" / "training_checkpoint.pt"
+CHECKPOINT_PATH = PROJECT_ROOT / "checkpoints" / "training_checkpoint_64.pt"
 
 # CARICO LE CONFIGURAZIONI E IL MODELLO CONDITIONAL ADDESTRATO
 def load_generation_components():
@@ -90,7 +91,7 @@ def generate_avatar(prompt, seed, vocabulary, tokenizer_config, text_encoder, un
 
     # ESEGUO IL REVERSE SAMPLING DEL DDPM
     generated_image = ddpm.sample(model=unet, text_features=text_features, text_padding_mask=padding_mask,
-                                  image_size=32, image_channels=3)
+                                  image_size=IMAGE_SIZE, image_channels=3)
 
     # RIPORTO I VALORI DELL'IMMAGINE NELL'INTERVALLO [0, 1]
     generated_image = generated_image.clamp(-1.0, 1.0)

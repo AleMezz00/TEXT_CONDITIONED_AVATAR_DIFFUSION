@@ -8,7 +8,7 @@ SMOKE_BATCH_SIZE = 4
 SMOKE_EPOCHS = 30
 
 # CHECKPOINT SEPARATO DAL TRAINING REALE
-SMOKE_CHECKPOINT_PATH = (conditional_training.CHECKPOINT_DIR /"unconditional_smoke_test_checkpoint.pt")
+SMOKE_CHECKPOINT_PATH = (conditional_training.CHECKPOINT_DIR /"unconditional_smoke_test_checkpoint_64.pt")
 
 # DURANTE LO SMOKE TEST USIAMO IL CHECKPOINT APPOSITO
 unconditional_training.UNCONDITIONAL_CHECKPOINT_PATH = SMOKE_CHECKPOINT_PATH

@@ -10,7 +10,7 @@ from diffusion import DDPM
 TEXT_HIDDEN_SIZE = 64
 
 # CHECKPOINT SEPARATO PER IL MODELLO UNCONDITIONAL
-UNCONDITIONAL_CHECKPOINT_PATH = (training.CHECKPOINT_DIR / "unconditional_checkpoint.pt")
+UNCONDITIONAL_CHECKPOINT_PATH = (training.CHECKPOINT_DIR / "unconditional_checkpoint_64.pt")
 
 # CREAZIONE DI UN CONDITIONING NULLO, SENZA INFORMAZIONI SUL TESTOx
 def create_null_conditioning(token_ids):

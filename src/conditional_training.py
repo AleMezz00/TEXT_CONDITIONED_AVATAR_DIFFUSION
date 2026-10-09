@@ -29,7 +29,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 CHECKPOINT_DIR = PROJECT_ROOT / "checkpoints"
-CHECKPOINT_PATH = CHECKPOINT_DIR / "training_checkpoint.pt"
+CHECKPOINT_PATH = CHECKPOINT_DIR / "training_checkpoint_64.pt"
 
 # CARICO DALLA CARTELLA "DATA" LE CONFIGURAZIONI SALVATE IN PRECEDENZA
 def load_saved_configurations():
