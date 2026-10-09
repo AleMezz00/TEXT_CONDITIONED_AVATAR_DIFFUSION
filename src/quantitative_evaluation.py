@@ -37,13 +37,13 @@ vocabulary, tokenizer_config, text_encoder, unet, ddpm = (generation.load_genera
 NUM_FID_SAMPLES = 50
 
 # SELEZIONO I SAMPLE DAL TEST IID
-fid_indexes = splits["test_iid"][:NUM_FID_SAMPLES]
+iid_fid_indexes = splits["test_iid"][:NUM_FID_SAMPLES]
 
 # INIZIALIZZO LA METRICA FID
-fid_metric = FrechetInceptionDistance(feature=2048).to(generation.device)
+iid_fid_metric = FrechetInceptionDistance(feature=2048).to(generation.device)
 
 # AGGIUNGO ALLA FID LE IMMAGINI REALI DEL TEST IID
-for index in fid_indexes:
+for index in iid_fid_indexes:
     sample = original_dataset[index]
 
     real_image = Image.open(BytesIO(sample["img_bytes"])).convert("RGB")
@@ -53,10 +53,10 @@ for index in fid_indexes:
     real_tensor = pil_to_tensor(real_image).unsqueeze(0)
     real_tensor = real_tensor.to(generation.device)
 
-    fid_metric.update(real_tensor, real=True)
+    iid_fid_metric.update(real_tensor, real=True)
 
 # AGGIUNGO ALLA FID LE IMMAGINI GENERATE DAL MODELLO CONDITIONAL
-for sample_number, index in enumerate(fid_indexes):
+for sample_number, index in enumerate(iid_fid_indexes):
 
     sample = original_dataset[index]
     prompt = generate_caption(sample)
@@ -74,9 +74,55 @@ for sample_number, index in enumerate(fid_indexes):
     generated_tensor = pil_to_tensor(generated_image).unsqueeze(0)
     generated_tensor = generated_tensor.to(generation.device)
 
-    fid_metric.update(generated_tensor, real=False)
+    iid_fid_metric.update(generated_tensor, real=False)
 
 # CALCOLO IL VALORE FINALE DELLA FID
-fid_value = fid_metric.compute()
+iid_fid_value = iid_fid_metric.compute()
 
-print(f"FID: {fid_value.item():.4f}")
+print(f"FID IID: {iid_fid_value.item():.4f}")
+
+
+# SELEZIONO I SAMPLE DAL TEST COMPOSITIONAL-OOD
+ood_fid_indexes = splits["test_ood"][:NUM_FID_SAMPLES]
+
+# INIZIALIZZO UNA NUOVA METRICA FID PER IL TEST OOD
+ood_fid_metric = FrechetInceptionDistance(feature=2048).to(generation.device)
+
+# AGGIUNGO ALLA FID LE IMMAGINI REALI DEL TEST OOD
+for index in ood_fid_indexes:
+    sample = original_dataset[index]
+
+    real_image = Image.open(BytesIO(sample["img_bytes"])).convert("RGB")
+
+    real_image = real_image.resize((IMAGE_SIZE, IMAGE_SIZE))
+
+    real_tensor = pil_to_tensor(real_image).unsqueeze(0)
+    real_tensor = real_tensor.to(generation.device)
+
+    ood_fid_metric.update(real_tensor, real=True)
+
+# AGGIUNGO ALLA FID LE IMMAGINI GENERATE DAL MODELLO CONDITIONAL
+for sample_number, index in enumerate(ood_fid_indexes):
+
+    sample = original_dataset[index]
+    prompt = generate_caption(sample)
+
+    generated_image = generation.generate_avatar(
+        prompt=prompt,
+        seed=42 + sample_number,
+        vocabulary=vocabulary,
+        tokenizer_config=tokenizer_config,
+        text_encoder=text_encoder,
+        unet=unet,
+        ddpm=ddpm
+    )
+
+    generated_tensor = pil_to_tensor(generated_image).unsqueeze(0)
+    generated_tensor = generated_tensor.to(generation.device)
+
+    ood_fid_metric.update(generated_tensor, real=False)
+
+# CALCOLO IL VALORE FINALE DELLA FID OOD
+ood_fid_value = ood_fid_metric.compute()
+
+print(f"FID OOD: {ood_fid_value.item():.4f}")
