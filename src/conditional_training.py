@@ -25,11 +25,12 @@ def set_seed(seed=42):
 # SELEZIONIAMO DOVE DEVE ESSERE EFFETTUATA L'ELABORAZIONE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# DEFINISCO I PERCORSI UTILI
+# DEFINISCO I PERCORSI E I CHECKPOINT DEL TRAINING
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 CHECKPOINT_DIR = PROJECT_ROOT / "checkpoints"
 CHECKPOINT_PATH = CHECKPOINT_DIR / "training_checkpoint_64.pt"
+BEST_CHECKPOINT_PATH = CHECKPOINT_DIR / "best_training_checkpoint_64.pt"
 
 # CARICO DALLA CARTELLA "DATA" LE CONFIGURAZIONI SALVATE IN PRECEDENZA
 def load_saved_configurations():
@@ -47,7 +48,7 @@ def load_saved_configurations():
 
     return splits, vocabulary, tokenizer_config, preprocessing_config
 
-# Create the training and validation datasets and DataLoaders
+# CREAZIONE DEI DATASET E DEI DATA LOADER PER TRAINING E VALIDATION
 def create_training_dataloaders(splits, vocabulary, tokenizer_config, batch_size=32, num_workers=0):
 
     # CARICO IL DATASET ORIGINALE
@@ -188,10 +189,11 @@ def validate(text_encoder, unet, ddpm, validation_loader, loss_function):
 
     return average_validation_loss
 
-# CHECKPOINT - SALVATAGGIO DELLO STATO CORRENTE DEL TRAINING
-def save_checkpoint(text_encoder, unet, optimizer, completed_epoch, best_validation_loss, epochs_without_improvement):
+# SALVATAGGIO DI UN CHECKPOINT NEL PERCORSO SPECIFICATO
+def save_checkpoint(text_encoder, unet, optimizer, completed_epoch, best_validation_loss,
+                    epochs_without_improvement, checkpoint_path):
 
-    # Create the checkpoint directory if it does not exist
+    # CREO LA CARTELLA DEI CHECKPOINT SE NON ESISTE
     CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 
     checkpoint = {
@@ -204,9 +206,9 @@ def save_checkpoint(text_encoder, unet, optimizer, completed_epoch, best_validat
     }
 
     # SALVATAGGIO DEL CHECKPOINT NELLA CARTELLA CREATA APPOSTIAMENTE IN PRECEDENZA
-    torch.save(checkpoint, CHECKPOINT_PATH)
+    torch.save(checkpoint, checkpoint_path)
 
-# RICARICO IL CHECKPOINT SALVATO
+# CARICAMENTO DEL CHECKPOINT CORRENTE PER RIPRENDERE IL TRAINING
 def load_checkpoint(text_encoder, unet, optimizer):
 
     # SE IL CHECKPOINT NON ESISTE RIPARTO DALL'EPOCA 0, CON UNA LOSS PARI A INFINITO E NESSUNA EPOCA SENZA MIGLIORAMENTO
@@ -252,12 +254,16 @@ def train_model(text_encoder, unet, ddpm, train_loader, validation_loader, loss_
             best_validation_loss = average_validation_loss
             epochs_without_improvement = 0
 
+            # SALVO ANCHE IL MODELLO MIGLIORE
+            save_checkpoint(text_encoder, unet, optimizer, completed_epoch=epoch + 1, best_validation_loss=best_validation_loss,
+                            epochs_without_improvement=epochs_without_improvement, checkpoint_path=BEST_CHECKPOINT_PATH)
+
         else:
             epochs_without_improvement += 1
 
-        # SALVIAMO LO STATO ATTUALE DEL TRAINING
-        save_checkpoint(text_encoder, unet, optimizer, completed_epoch=epoch + 1,
-                        best_validation_loss=best_validation_loss, epochs_without_improvement=epochs_without_improvement)
+        # SALVO IL CHECKPOINT CORRENTE PER POTER RIPRENDERE IL TRAINING
+        save_checkpoint(text_encoder, unet, optimizer, completed_epoch=epoch + 1,best_validation_loss=best_validation_loss,
+                        epochs_without_improvement=epochs_without_improvement, checkpoint_path=CHECKPOINT_PATH)
 
         # INTERROMPO IL TRAINING SE NON SI HA UN MIGLIORAMENTO PER UN DETERMINATO NUMERO DI EPOCHE CONSECUTIVE
         if epochs_without_improvement >= patience:
@@ -267,7 +273,7 @@ def train_model(text_encoder, unet, ddpm, train_loader, validation_loader, loss_
 # ESECUZIONE DELLA PIPELINE COMPLETA DEL TRAINING
 def main():
 
-    # SEED PER LA RIPROCUCIBILITA'
+    # SEED PER LA RIPRODUCIBILITA'
     set_seed(42)
 
     print(f"Using device: {device}")

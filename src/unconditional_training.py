@@ -9,10 +9,11 @@ from diffusion import DDPM
 # DIMENSIONE DELLE TEXT FEATURES UTILIZZATA ANCHE NEL MODELLO CONDITIONAL
 TEXT_HIDDEN_SIZE = 64
 
-# CHECKPOINT SEPARATO PER IL MODELLO UNCONDITIONAL
+# DEFINISCO I CHECKPOINT DEL MODELLO UNCONDITIONAL
 UNCONDITIONAL_CHECKPOINT_PATH = (training.CHECKPOINT_DIR / "unconditional_checkpoint_64.pt")
+BEST_UNCONDITIONAL_CHECKPOINT_PATH = (training.CHECKPOINT_DIR / "best_unconditional_checkpoint_64.pt")
 
-# CREAZIONE DI UN CONDITIONING NULLO, SENZA INFORMAZIONI SUL TESTOx
+# CREAZIONE DI UN CONDITIONING NULLO, SENZA INFORMAZIONI SUL TESTO
 def create_null_conditioning(token_ids):
 
     batch_size = token_ids.size(0)
@@ -141,8 +142,9 @@ def validate_unconditional(unet, ddpm, validation_loader, loss_function):
 
     return average_validation_loss
 
-# SALVATAGGIO DEL CHECKPOINT DEL MODELLO UNCONDITIONAL
-def save_unconditional_checkpoint(unet, optimizer, completed_epoch, best_validation_loss,epochs_without_improvement):
+# SALVATAGGIO DI UN CHECKPOINT UNCONDITIONAL NEL PERCORSO SPECIFICATO
+def save_unconditional_checkpoint(unet, optimizer, completed_epoch, best_validation_loss,
+                                  epochs_without_improvement, checkpoint_path):
 
     # CREO LA CARTELLA CHECKPOINT SE NON ESISTE
     training.CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
@@ -156,7 +158,7 @@ def save_unconditional_checkpoint(unet, optimizer, completed_epoch, best_validat
         "epochs_without_improvement": epochs_without_improvement
     }
 
-    torch.save(checkpoint, UNCONDITIONAL_CHECKPOINT_PATH)
+    torch.save(checkpoint, checkpoint_path)
 
 # CARICAMENTO DEL CHECKPOINT DEL MODELLO UNCONDITIONAL
 def load_unconditional_checkpoint(unet, optimizer):
@@ -210,12 +212,16 @@ def train_unconditional_model(unet, ddpm, train_loader, validation_loader, loss_
             best_validation_loss = average_validation_loss
             epochs_without_improvement = 0
 
+            # SALVO ANCHE IL MODELLO MIGLIORE
+            save_unconditional_checkpoint(unet=unet, optimizer=optimizer, completed_epoch=epoch + 1, best_validation_loss=best_validation_loss,
+                                          epochs_without_improvement=epochs_without_improvement, checkpoint_path=BEST_UNCONDITIONAL_CHECKPOINT_PATH)
+
         else:
             epochs_without_improvement += 1
 
-        # SALVO LO STATO CORRENTE DEL TRAINING
-        save_unconditional_checkpoint(unet=unet, optimizer=optimizer,completed_epoch=epoch + 1,
-                                      best_validation_loss=best_validation_loss, epochs_without_improvement=epochs_without_improvement)
+        # SALVO IL CHECKPOINT CORRENTE PER POTER RIPRENDERE IL TRAINING
+        save_unconditional_checkpoint(unet=unet, optimizer=optimizer,completed_epoch=epoch + 1, best_validation_loss=best_validation_loss,
+                                      epochs_without_improvement=epochs_without_improvement, checkpoint_path=UNCONDITIONAL_CHECKPOINT_PATH)
 
         # INTERROMPO IL TRAINING SE NON CI SONO MIGLIORAMENTI
         if epochs_without_improvement >= patience:
