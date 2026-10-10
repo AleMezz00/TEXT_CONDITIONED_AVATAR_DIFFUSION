@@ -6,11 +6,11 @@ SMOKE_VALIDATION_SAMPLES = 8
 SMOKE_BATCH_SIZE = 4
 SMOKE_EPOCHS = 30
 
-# DEFINIAMO UN CHECKPOINT SEPARATO PER LO SMOKE TEST E SALVIAMO ANCHE IL BEST CHECKPOINT
-SMOKE_CHECKPOINT_PATH = (training.CHECKPOINT_DIR / "smoke_test_checkpoint_64.pt")
-training.CHECKPOINT_PATH = SMOKE_CHECKPOINT_PATH
+# DEFINIAMO DEI CHECKPOINT SEPARATI PER LO SMOKE TEST
+SMOKE_CHECKPOINT_PATH = training.CHECKPOINT_DIR / "smoke_test_checkpoint.pt"
+SMOKE_BEST_CHECKPOINT_PATH = training.CHECKPOINT_DIR / "best_smoke_test_checkpoint.pt"
 
-SMOKE_BEST_CHECKPOINT_PATH = (training.CHECKPOINT_DIR / "best_smoke_test_checkpoint_64.pt")
+training.CHECKPOINT_PATH = SMOKE_CHECKPOINT_PATH
 training.BEST_CHECKPOINT_PATH = SMOKE_BEST_CHECKPOINT_PATH
 
 # CREO DEI DATA LOADERS PER IL TRAINING E LA VALIDATION DEL NOSTRO SMOKE TEST
@@ -19,7 +19,7 @@ def create_smoke_dataloaders(splits, vocabulary, tokenizer_config):
     smoke_splits = {"train": splits["train"][:SMOKE_TRAIN_SAMPLES],
                     "validation": splits["validation"][:SMOKE_VALIDATION_SAMPLES]}
 
-    # RIUSO LA STESSA FUNZIONE DI conditional_training.py PER CREARE I DATA LOADER
+    # RIUSIAMO LA STESSA FUNZIONE USATA IN conditional_training.py PER LA CREAZIONE DEI DATA LOADER
     train_loader, validation_loader = training.create_training_dataloaders(splits=smoke_splits, vocabulary=vocabulary,
                                                 tokenizer_config=tokenizer_config, batch_size=SMOKE_BATCH_SIZE, num_workers=0)
 

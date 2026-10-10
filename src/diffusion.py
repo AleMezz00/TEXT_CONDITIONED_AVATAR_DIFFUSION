@@ -1,6 +1,5 @@
 import torch
 from unet import sinusoidal_time_embedding
-from preprocessing import IMAGE_SIZE
 
 # CLASSE PER IL DDPM
 class DDPM:
@@ -57,7 +56,7 @@ class DDPM:
         return previous_images
 
     # FUNZIONE PER IL SAMPLING LOOP COMPLETO
-    def sample(self, model, text_features, text_padding_mask=None, image_size=IMAGE_SIZE, image_channels=3):
+    def sample(self, model, text_features, text_padding_mask=None, image_size=32, image_channels=3):
 
         batch_size = text_features.size(0)
 

@@ -25,12 +25,12 @@ def set_seed(seed=42):
 # SELEZIONIAMO DOVE DEVE ESSERE EFFETTUATA L'ELABORAZIONE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# DEFINISCO I PERCORSI E I CHECKPOINT DEL TRAINING
+# DEFINISCO I PERCORSI UTILI
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 CHECKPOINT_DIR = PROJECT_ROOT / "checkpoints"
-CHECKPOINT_PATH = CHECKPOINT_DIR / "training_checkpoint_64.pt"
-BEST_CHECKPOINT_PATH = CHECKPOINT_DIR / "best_training_checkpoint_64.pt"
+CHECKPOINT_PATH = CHECKPOINT_DIR / "training_checkpoint.pt"
+BEST_CHECKPOINT_PATH = CHECKPOINT_DIR / "best_training_checkpoint.pt"
 
 # CARICO DALLA CARTELLA "DATA" LE CONFIGURAZIONI SALVATE IN PRECEDENZA
 def load_saved_configurations():
@@ -48,7 +48,7 @@ def load_saved_configurations():
 
     return splits, vocabulary, tokenizer_config, preprocessing_config
 
-# CREAZIONE DEI DATASET E DEI DATA LOADER PER TRAINING E VALIDATION
+# CREAZIONE DEI DATASET E DATALOADER DI TRAINING
 def create_training_dataloaders(splits, vocabulary, tokenizer_config, batch_size=32, num_workers=0):
 
     # CARICO IL DATASET ORIGINALE
@@ -113,7 +113,7 @@ def train_one_epoch(text_encoder, unet, ddpm, train_loader, loss_function, optim
 
         batch_size = images.size(0)
 
-        # SELEZIONIAMO CASUALEMNTE UN TIMESTEP PER CIASCUNA DELLE IMMAGINI CHE COSTITUISCE IL BATCH
+        # SELEZIONIAMO CASUALMENTE UN TIMESTEP PER CIASCUNA DELLE IMMAGINI CHE COSTITUISCE IL BATCH
         timesteps = torch.randint(0, ddpm.num_timesteps, (batch_size,),  device=device, dtype=torch.long)
 
         # AGGIUNGIAMO, IN BASE AL TIMESTEP CONSIDERATO, IL RUMORE GAUSSIANO CASUALE ALLE IMMAGINI PULITE
@@ -189,7 +189,7 @@ def validate(text_encoder, unet, ddpm, validation_loader, loss_function):
 
     return average_validation_loss
 
-# SALVATAGGIO DI UN CHECKPOINT NEL PERCORSO SPECIFICATO
+# CHECKPOINT - SALVATAGGIO DELLO STATO DEL TRAINING
 def save_checkpoint(text_encoder, unet, optimizer, completed_epoch, best_validation_loss,
                     epochs_without_improvement, checkpoint_path):
 
@@ -205,10 +205,10 @@ def save_checkpoint(text_encoder, unet, optimizer, completed_epoch, best_validat
         "epochs_without_improvement": epochs_without_improvement
     }
 
-    # SALVATAGGIO DEL CHECKPOINT NELLA CARTELLA CREATA APPOSTIAMENTE IN PRECEDENZA
+    # SALVO IL CHECKPOINT NEL PERCORSO SPECIFICATO
     torch.save(checkpoint, checkpoint_path)
 
-# CARICAMENTO DEL CHECKPOINT CORRENTE PER RIPRENDERE IL TRAINING
+# RICARICO IL CHECKPOINT SALVATO
 def load_checkpoint(text_encoder, unet, optimizer):
 
     # SE IL CHECKPOINT NON ESISTE RIPARTO DALL'EPOCA 0, CON UNA LOSS PARI A INFINITO E NESSUNA EPOCA SENZA MIGLIORAMENTO
@@ -254,16 +254,18 @@ def train_model(text_encoder, unet, ddpm, train_loader, validation_loader, loss_
             best_validation_loss = average_validation_loss
             epochs_without_improvement = 0
 
-            # SALVO ANCHE IL MODELLO MIGLIORE
-            save_checkpoint(text_encoder, unet, optimizer, completed_epoch=epoch + 1, best_validation_loss=best_validation_loss,
-                            epochs_without_improvement=epochs_without_improvement, checkpoint_path=BEST_CHECKPOINT_PATH)
+            # SALVO SEPARATAMENTE IL MODELLO MIGLIORE
+            save_checkpoint(text_encoder=text_encoder, unet=unet, optimizer=optimizer, completed_epoch=epoch + 1,
+                            best_validation_loss=best_validation_loss, epochs_without_improvement=epochs_without_improvement,
+                            checkpoint_path=BEST_CHECKPOINT_PATH)
 
         else:
             epochs_without_improvement += 1
 
-        # SALVO IL CHECKPOINT CORRENTE PER POTER RIPRENDERE IL TRAINING
-        save_checkpoint(text_encoder, unet, optimizer, completed_epoch=epoch + 1,best_validation_loss=best_validation_loss,
-                        epochs_without_improvement=epochs_without_improvement, checkpoint_path=CHECKPOINT_PATH)
+        # SALVO SEMPRE LO STATO CORRENTE PER POTER RIPRENDERE IL TRAINING
+        save_checkpoint(text_encoder=text_encoder, unet=unet, optimizer=optimizer, completed_epoch=epoch + 1,
+                        best_validation_loss=best_validation_loss, epochs_without_improvement=epochs_without_improvement,
+                        checkpoint_path=CHECKPOINT_PATH)
 
         # INTERROMPO IL TRAINING SE NON SI HA UN MIGLIORAMENTO PER UN DETERMINATO NUMERO DI EPOCHE CONSECUTIVE
         if epochs_without_improvement >= patience:
