@@ -79,4 +79,7 @@ class DDPM:
                 # CALCOLO DELL'IMMAGINE AL TIMESTEP PRECEDENTE (RIMOZIONE GRADUALE DEL RUMORE)
                 current_images = self.remove_noise_step(current_images, predicted_noise, timesteps)
 
+                # MANTENGO I VALORI NELL'INTERVALLO ATTESO DELLE IMMAGINI NORMALIZZATE
+                current_images = current_images.clamp(-1.0, 1.0)
+
         return current_images
