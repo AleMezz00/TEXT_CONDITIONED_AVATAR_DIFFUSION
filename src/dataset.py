@@ -6,7 +6,7 @@ from build_tokenizer import encode_caption, pad_sequence
 
 # CREO UN MIO DATASET PERSONALIZZATO COMPATIBILE CON IL SISTEMA PYTORCH
 class CartoonAvatarDataset(Dataset):
-    def __init__(self, original_dataset, split_indexes, vocabulary, max_length=3):
+    def __init__(self, original_dataset, split_indexes, vocabulary, max_length=30):
 
         self.original_dataset = original_dataset
         self.split_indexes = split_indexes
